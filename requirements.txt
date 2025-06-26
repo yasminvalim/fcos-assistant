@@ -1,0 +1,3 @@
+matrix-nio[e2ee]
+google-generativeai
+asyncio
