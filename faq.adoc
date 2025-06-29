@@ -1,0 +1,348 @@
+= Fedora CoreOS Frequently Asked Questions
+
+If you have other questions than are mentioned here or want to discuss
+further, join us in our Matrix room,
+link:https://chat.fedoraproject.org/#/room/#coreos:fedoraproject.org[#coreos:fedoraproject.org],
+or on our https://discussion.fedoraproject.org/tag/coreos[discussion board].
+Please refer back here as some questions and answers will likely get
+updated.
+
+== What is Fedora CoreOS?
+
+Fedora CoreOS is an automatically updating, minimal, monolithic,
+container-focused operating system, designed for clusters but also
+operable standalone, optimized for Kubernetes but also great without it.
+Its goal is to provide the best container host to run containerized
+workloads securely and at scale.
+
+== How does Fedora CoreOS relate to RHEL CoreOS?
+
+Fedora CoreOS is a freely available, community distribution that is the
+upstream basis for RHEL CoreOS. While Fedora CoreOS embraces a
+variety of containerized use cases, RHEL CoreOS provides a
+focused OS for OpenShift, released and life-cycled in tandem
+with the platform.
+
+== How does Fedora CoreOS relate to Fedora Bootc?
+
+https://docs.fedoraproject.org/en-US/bootc/[Fedora Bootc] is
+a Fedora project aimed at building Fedora and CentOS-based
+https://containers.github.io/bootable/[bootable containers]. The goal is to
+eventually have Fedora CoreOS build on top of Fedora Bootc both literally and in
+the broader sense of being part of the same ecosystem. The roadmap for this can
+be found https://github.com/coreos/fedora-coreos-tracker/issues/1726[on GitHub].
+
+Fedora CoreOS adds
+https://docs.fedoraproject.org/en-US/fedora-coreos/update-streams/[a stream model],
+platform-specific integration and disk images, provisioning via Ignition, and
+more tooling around automatic updates. The goal is also to have Fedora CoreOS
+integrate more strongly with the Kubernetes ecosystem.
+
+If you find yourself needing to heavily customize Fedora CoreOS beyond what
+https://docs.fedoraproject.org/en-US/fedora-coreos/os-extensions/[OS extensions]
+provide, it might make more sense to instead build on top of Fedora Bootc
+directly. It will eventually be possible to layer Ignition and e.g. Zincati
+on top if desired. These tools are intended to be used generically and are not
+strictly tied to Fedora CoreOS.
+
+== What are the communication channels around Fedora CoreOS?
+
+We have the following new communication channels around Fedora CoreOS:
+
+* Mailing list: https://lists.fedoraproject.org/archives/list/coreos@lists.fedoraproject.org/[coreos@lists.fedoraproject.org]
+* Operational notices for Fedora CoreOS: https://lists.fedoraproject.org/archives/list/coreos-status@lists.fedoraproject.org/[coreos-status@lists.fedoraproject.org]
+* Matrix: https://chat.fedoraproject.org/#/room/#coreos:fedoraproject.org[#coreos:fedoraproject.org]
+* Forum at https://discussion.fedoraproject.org/tag/coreos
+* Website at https://fedoraproject.org/coreos/
+* Twitter at https://twitter.com/fedoracoreos[@fedoracoreos] (Fedora CoreOS news), https://twitter.com/fedora[@fedora] (all Fedora and other relevant news)
+
+There is a community meeting that happens every week. See the https://calendar.fedoraproject.org/CoreOS/[Fedora CoreOS fedocal] for the most up-to-date information.
+
+If you think you have found a problem with Fedora CoreOS, file an issue in our https://github.com/coreos/fedora-coreos-tracker/issues[issue tracker].
+
+== Where can I download Fedora CoreOS?
+
+Fedora CoreOS artifacts are available at https://fedoraproject.org/en/coreos/download/[fedoraproject.org].
+
+== Does Fedora CoreOS update itself automatically?
+
+Yes, Fedora CoreOS comes with automatic
+updates and regular releases. Multiple update channels are provided
+catering to different users' needs. Fedora CoreOS provides a node-update
+service based on rpm-ostree technologies, with a server component that
+can be optionally self-hosted.
+
+== How are Fedora CoreOS nodes provisioned? Can I re-use existing cloud-init configurations?
+
+Fedora CoreOS is provisioned with Ignition. Existing cloud-init
+configurations are not supported and will need to be migrated into their
+Ignition equivalent.
+
+== What data persists across upgrades and reboots?
+
+The directories `/etc` and `/var` are mounted as read-write which lets users
+write and modify files.
+
+The directory `/etc` may be changed by deployments, but will not override user
+made changes. The content under `/var` is left untouched by rpm-ostree when
+applying upgrades or rollbacks. For more information, refer to the
+https://docs.fedoraproject.org/en-US/fedora-coreos/storage/#_mounted_filesystems[Mounted Filesystems]
+section.
+
+== Which container runtimes are available on Fedora CoreOS?
+
+Fedora CoreOS includes Docker and podman by default.
+Based on community engagement and support this list could
+change over time.
+
+== Can I run Kubernetes on Fedora CoreOS?
+
+Yes. However, Fedora CoreOS does not include a specific container
+orchestrator (or version of Kubernetes) by default.
+
+== How do I run custom applications on Fedora CoreOS?
+
+On Fedora CoreOS, containers are the way to install and configure any
+software not provided by the base operating system. The package layering
+mechanism provided by rpm-ostree will continue to exist for use in
+debugging a Fedora CoreOS machine, but we strongly discourage its use.
+For more about this, please refer to xref:running-containers.adoc[documentation].
+
+== Where is my preferred tool for troubleshooting?
+
+The FCOS image is kept minimal by design. Not every troubleshooting tool are
+included by default. Instead, it is recommended to use the `toolbox` utility.
+
+xref:debugging-with-toolbox.adoc[Debugging with Toolbx].
+
+== How do I coordinate cluster-wide OS updates?
+
+The Zincati update manager includes a
+https://coreos.github.io/zincati/usage/updates-strategy/#lock-based-strategy[lock-based updates strategy]
+that supports multiple backends.
+
+OKD's https://github.com/openshift/machine-config-operator[Machine Config Operator (MCO)]
+automatically handles updates of Fedora CoreOS in OKD clusters.
+The MCO additionally covers reconciliation of machine configuration changes.
+
+== How do I upload Fedora CoreOS to private AWS EC2 regions?
+
+Fedora CoreOS today is only uploaded to the standard AWS regions. For regions
+in other AWS partitions like GovCloud and AWS China, you must upload the images
+yourself.
+
+Note that Fedora CoreOS uses a unified BIOS/UEFI partition layout. As such, it
+is not compatible with the `aws ec2 import-image` API (for more information,
+see https://github.com/openshift/os/pull/396[related discussions]). Instead,
+you must use `aws ec2 import-snapshot` combined with `aws ec2 register-image`.
+
+To learn more about these APIs, see the AWS documentation for
+https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-import-snapshot.html[importing snapshots]
+and
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot[creating EBS-backed AMIs].
+
+== Can I run containers via docker and podman at the same time?
+
+No. Running containers via `docker` and `podman` at the same time can cause
+issues and unexpected behavior. We highly recommend against trying to use them
+both at the same time.
+
+It is worth noting that in Fedora CoreOS we have `docker.service`
+disabled by default but it is easily started if anything communicates
+with the `/var/run/docker.sock` because `docker.socket` is enabled by
+default. This means that if a user runs any `docker` command (via
+`sudo docker`) then the daemon will be activated.
+
+In https://github.com/coreos/fedora-coreos-tracker/issues/408[coreos/fedora-coreos-tracker#408]
+it was pointed out that because of socket activation users who are
+using `podman` for containers could unintentionally start the docker
+daemon. This could weaken the security of the system because of the
+interaction of both container runtimes with the firewall on the system.
+To prevent making this mistake you can disable `docker` completely by
+masking the `docker.service` systemd unit.
+
+.Example Butane config for disabling docker.service
+[source,yaml,subs="attributes"]
+----
+variant: fcos
+version: {butane-latest-stable-spec}
+systemd:
+  units:
+    - name: docker.service
+      mask: true
+----
+
+== Are Fedora CoreOS x86_64 disk images hybrid BIOS+UEFI bootable?
+
+The x86_64 images we provide can be used for either BIOS (legacy) boot or UEFI boot. They contain a hybrid BIOS/UEFI partition setup that allows them to be used for either. The exception to that is the `metal4k` 4k native image, which is targeted at disks with 4k sectors and https://github.com/coreos/coreos-assembler/blob/12029fea7798fa5d3535eafcf8c3d02f9a6095e4/src/cmd-buildextend-metal#L200-L202[does not have a BIOS boot partition] because 4k native disks are https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/hard-drives-and-partitions#advanced-format-drives[only supported with UEFI].
+
+== What's the difference between Ignition and Butane configurations?
+
+Ignition configuration is a low-level interface used to define the whole set of customizations for an instance.
+It is primarily meant as a machine-friendly interface, with content encoded as JSON and a fixed structure defined via JSON Schema.
+This JSON configuration is processed by each FCOS instance upon first boot.
+
+Many high-level tools exist that can produce an Ignition configuration starting from their own specific input formats,
+such as `terraform`, `matchbox`, `openshift-installer`, and Butane.
+
+Butane is one such high-level tool.
+It is primarily meant as a human-friendly interface, thus defining its own richer configuration entries and using YAML documents as input.
+This YAML configuration is never directly processed by FCOS instances (only the resulting Ignition configuration is).
+
+Although similar, Ignition configurations and Butane ones do not have the same structure; thus, converting between them is not just a direct YAML-to-JSON translation, but it involves additional logic.
+Butane exposes several customization helpers (e.g. distribution specific entries and common abstractions) that are not present in Ignition and make the formats not interchangeable.
+Additionally, the different formats (YAML for Butane, JSON for Ignition) help to avoid mixing up inputs by mistake.
+
+== What is the format of the version number?
+
+This is covered in detail in the https://github.com/coreos/fedora-coreos-tracker/blob/main/Design.md#version-numbers[design docs].
+
+The summary is that Fedora CoreOS uses the format `X.Y.Z.A`
+
+* `X` is the Fedora major version (i.e. `32`)
+* `Y` is the datestamp that the package set was snapshotted from Fedora (i.e. `20200715`)
+* `Z` is a code number used by official builds
+** `1` for the `next` stream
+** `2` for the `testing` stream
+** `3` for the `stable` stream
+* `A` is a revision number that is incremented for each new build with the same `X.Y.Z` parameters
+
+The version numbering scheme is subject to change and is not intended to be parsed by machine.
+
+== Why is the `dnsmasq.service` systemd unit masked?
+
+We have found that the dnsmasq binary can be used for several host
+applications, including podman and NetworkManager. For this reason we
+include the dnsmasq package in the base OSTree layer, but we discourage
+the use of the `dnsmasq.service` in the host by masking it with
+`systemctl mask dnsmasq.service`.
+
+_"Why do you mask the service?"_
+
+dnsmasq is useful for running a DHCP/DNS/TFTP server for external clients
+(i.e. not local to the host), too, but that is something we'd prefer users
+to do in a container. Putting the service in a container insulates the
+hosted service from breakage as a result of host layer changes. For
+example, if NetworkManager and podman stopped using dnsmasq, we would
+remove it from the host and the service you depend on would cease to
+work.
+
+_"But, I really want to use it!"_
+
+We don't recommend it, but if you really want to use it you can just
+unmask and enable it:
+
+.Example Butane config for unmasking dnsmasq.service
+[source,yaml,subs="attributes"]
+----
+variant: fcos
+version: {butane-latest-stable-spec}
+systemd:
+  units:
+    - name: dnsmasq.service
+      mask: false
+      enabled: true
+----
+
+For more information see
+https://github.com/coreos/fedora-coreos-tracker/issues/519[the tracker issue discussion].
+
+== Why do I get SELinux denials after updates if I have local policy modifications?
+
+Currently, the OSTree and SELinux tooling conflict a bit. If you have
+permanently applied local policy modifications then policy updates
+delivered by the OS will no longer apply; your policy stays frozen.
+This means any policy "fixes" needed to enable new functionality will
+not get applied. See
+https://github.com/coreos/fedora-coreos-tracker/issues/701[coreos/fedora-coreos-tracker#701]
+for more details.
+
+This means you may see denials like the following, which can take down critical parts
+of a system like in
+https://github.com/coreos/fedora-coreos-tracker/issues/700[coreos/fedora-coreos-tracker#700]:
+
+.Example SELinux denial
+[source, text]
+----
+systemd-resolved[755]: Failed to symlink /run/systemd/resolve/stub-resolv.conf: Permission denied
+audit[755]: AVC avc:  denied  { create } for  pid=755 comm="systemd-resolve" name=".#stub-resolv.confc418434d59d7d93a" scontext=system_u:system_r:systemd_resolved_t:s0 tcontext=system_u:object_r:systemd_resolved_var_run_t:s0 tclass=lnk_file permissive=0
+----
+
+To see if your system currently has local policy modifications you can
+run `ostree admin config-diff`. The following system has a modified
+policy:
+
+.Example system with a modified SELinux policy
+[source, text]
+----
+$ sudo ostree admin config-diff | grep selinux/targeted/policy
+M    selinux/targeted/policy/policy.32
+----
+
+To work around this incompatibility, please attempt to apply policy
+modifications dynamically. For example, for an SELinux boolean you can use the
+following systemd unit that executes on every boot:
+
+.Example Butane config for dynamically applying SELinux boolean
+[source,yaml,subs="attributes"]
+----
+variant: fcos
+version: {butane-latest-stable-spec}
+systemd:
+  units:
+    - name: setsebool.service
+      enabled: true
+      contents: |
+        [Service]
+        Type=oneshot
+        ExecStart=setsebool container_manage_cgroup true
+        RemainAfterExit=yes
+        [Install]
+        WantedBy=multi-user.target
+----
+
+If your system's basic functionality has stopped working because of
+SELinux denials check to see if your system currently has local policy
+modifications. You can check with `ostree admin config-diff`:
+
+.Example system with a modified SELinux policy
+[source, text]
+----
+$ sudo ostree admin config-diff | grep selinux/targeted/policy
+M    selinux/targeted/policy/policy.32
+----
+
+If your system is in this state you have two options:
+
+* Re-deploy starting with the latest image artifacts.
+** This means you start with the latest policy.
+* Follow the workaround in https://github.com/coreos/fedora-coreos-tracker/issues/701[coreos/fedora-coreos-tracker#701] to restore the base policy.
+
+== Why is the `systemd-repart.service` systemd unit masked?
+
+https://www.freedesktop.org/software/systemd/man/systemd-repart.html[system-repart]
+is a tool to grow and add partitions to a partition table. On Fedora CoreOS, we
+only support using Ignition to create partitions, filesystems and mount points,
+thus systemd-repart is masked by default.
+
+Ignition runs on first boot in the initramfs and is aware of Fedora CoreOS
+specific disk layout. It is also capable of reconfiguring the root filesystem
+(from xfs to ext4 for example), setting up LUKS, etc... See the
+xref:storage.adoc[Configuring Storage] page for examples.
+
+See the xref:faq.adoc#_why_is_the_dnsmasq_service_systemd_unit_masked[Why is the `dnsmasq.service` systemd unit masked]
+entry for an example config to unmask this unit.
+
+[#wifi-fw]
+== How do I keep dropped wireless firmware?
+
+Some Wi-Fi firmwares were split into subpackages in Fedora 39 and Fedora 40. Fedora CoresOS will keep them in until Fedora 41, but display a warning message in the console if `NetworkManager-wifi` is layered without any other Wi-Fi firmware packages layered.
+
+To request the Wi-Fi firmware stay installed even when Fedora CoreOS drops these packages please follow the xref:sysconfig-enabling-wifi.adoc#_on_an_existing_fedora_coreos_system[steps to perform Wi-Fi enablement on an existing system].
+
+Once the packages are requested you can now disable the warning so it won't be checked on subsequent boots.
+
+[source, text]
+----
+sudo systemctl disable coreos-check-wireless-firmwares.service
+----
